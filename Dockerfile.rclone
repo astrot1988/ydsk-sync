@@ -1,0 +1,21 @@
+FROM debian:bookworm-slim
+
+ENV DEBIAN_FRONTEND=noninteractive
+ENV RCLONE_CONFIG=/config/rclone/rclone.conf
+ENV RCLONE_REMOTE_NAME=yd
+
+RUN apt-get update \
+    && apt-get install -y --no-install-recommends ca-certificates lsyncd python3 rclone tini \
+    && rm -rf /var/lib/apt/lists/*
+
+WORKDIR /work
+
+COPY entrypoint.sh /usr/local/bin/entrypoint.sh
+COPY telegram_auth_rclone.py /usr/local/bin/telegram_auth_rclone.py
+COPY rclone-sync.sh /usr/local/bin/rclone-sync.sh
+RUN chmod +x /usr/local/bin/entrypoint.sh /usr/local/bin/telegram_auth_rclone.py /usr/local/bin/rclone-sync.sh
+
+VOLUME ["/config/rclone", "/data", "/work"]
+
+ENTRYPOINT ["/usr/bin/tini", "--", "/usr/local/bin/entrypoint.sh"]
+CMD []

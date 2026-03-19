@@ -1,0 +1,25 @@
+FROM debian:bookworm-slim
+
+ENV DEBIAN_FRONTEND=noninteractive
+ENV YANDEX_DISK_CONFIG_DIR=/config/yandex-disk
+ENV YANDEX_DISK_DATA_DIR=/data
+ENV YANDEX_DISK_VERSION=0.1.6.1080
+
+RUN apt-get update \
+    && apt-get install -y --no-install-recommends ca-certificates curl python3 tini \
+    && curl -fsSL -o /tmp/yandex-disk.deb \
+      "http://repo.yandex.ru/yandex-disk/deb/pool/main/y/yandex-disk/yandex-disk_${YANDEX_DISK_VERSION}_amd64.deb" \
+    && apt-get install -y /tmp/yandex-disk.deb \
+    && rm -f /tmp/yandex-disk.deb \
+    && rm -rf /var/lib/apt/lists/*
+
+WORKDIR /work
+
+COPY entrypoint.yandex-disk.sh /usr/local/bin/entrypoint.yandex-disk.sh
+COPY telegram_auth.py /usr/local/bin/telegram_auth.py
+RUN chmod +x /usr/local/bin/entrypoint.yandex-disk.sh /usr/local/bin/telegram_auth.py
+
+VOLUME ["/config/yandex-disk", "/data", "/work"]
+
+ENTRYPOINT ["/usr/bin/tini", "--", "/usr/local/bin/entrypoint.yandex-disk.sh"]
+CMD ["sync"]

@@ -1,0 +1,24 @@
+services:
+  ydsk-rclone:
+    build:
+      context: /Users/aleksejlutovinov/Projects/quank-mvp/ydsk_backup
+      dockerfile: /Users/aleksejlutovinov/Projects/quank-mvp/ydsk_backup/Dockerfile.rclone
+    image: ydsk-rclone:latest
+    container_name: ydsk-rclone
+    environment:
+      RCLONE_REMOTE_NAME: ${RCLONE_REMOTE_NAME:-yd}
+      YDSK_REMOTE_PATH: ${YDSK_REMOTE_PATH:?set YDSK_REMOTE_PATH in .env or environment}
+      LSYNCD_DELAY_SECONDS: ${LSYNCD_DELAY_SECONDS:-5}
+      LSYNCD_LOG_LEVEL: ${LSYNCD_LOG_LEVEL:-normal}
+      RCLONE_SYNC_FLAGS: ${RCLONE_SYNC_FLAGS:-}
+      YANDEX_CLIENT_ID: ${YANDEX_CLIENT_ID:-}
+      YANDEX_CLIENT_SECRET: ${YANDEX_CLIENT_SECRET:-}
+      YANDEX_OAUTH_SCOPE: ${YANDEX_OAUTH_SCOPE:-}
+      YANDEX_OAUTH_DEBUG: ${YANDEX_OAUTH_DEBUG:-0}
+      TELEGRAM_BOT_TOKEN: ${TELEGRAM_BOT_TOKEN:-}
+      TELEGRAM_ADMIN: ${TELEGRAM_ADMIN:-}
+      TELEGRAM_AUTH_TIMEOUT: ${TELEGRAM_AUTH_TIMEOUT:-900}
+    volumes:
+      - /Users/aleksejlutovinov/Projects/quank-mvp/ydsk_backup/config:/config/rclone
+      - /Users/aleksejlutovinov/Projects/quank-mvp/ydsk_backup/data:/data
+    restart: unless-stopped
