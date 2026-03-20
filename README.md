@@ -2,10 +2,13 @@
 
 Контейнер для синхронизации локального каталога `/data` в каталог на Yandex Disk через `rclone`.
 
+В репозитории также есть отдельный новый Python-only вариант загрузчика, который работает без `rclone` и загружает файлы через Yandex Disk REST API.
+
 ## Статус
 
 - `Dockerfile.rclone` - основной и поддерживаемый вариант.
 - `Dockerfile.yandex-disk` - контейнер с официальным `yandex-disk` пока находится в разработке, использовать его не нужно.
+- `Dockerfile.python-uploader` - отдельный Python-only uploader. Он не заменяет текущий `rclone`-сценарий и запускается через отдельный compose-файл.
 
 ## Готовый образ
 
@@ -15,7 +18,7 @@
 ghcr.io/astrot1988/ydsk-sync:latest
 ```
 
-Также публикуются теги branch и `sha-<commit>`.
+Сейчас CI публикует Python uploader image. Также публикуются теги branch и `sha-<commit>`.
 
 ## Как работает
 
@@ -70,9 +73,37 @@ docker compose logs -f ydsk-rclone
 docker build -f ./Dockerfile.rclone -t ydsk-rclone .
 ```
 
+## Python uploader
+
+Этот вариант запускается отдельно и не затрагивает текущий `rclone`-стек.
+
+Что он делает:
+
+- авторизуется через Telegram + Yandex Device Flow
+- сравнивает локальное дерево `/data` с удалённым каталогом на Yandex Disk
+- загружает только новые или изменившиеся файлы напрямую в Yandex Disk API
+- удаляет на Yandex Disk файлы, которых больше нет локально
+- перед загрузкой переименовывает локальный файл в `*.file`
+- после успешной загрузки переименовывает удалённый файл из `*.file` в финальное имя
+- после успешной загрузки возвращает локальному файлу исходное имя и оставляет его на диске
+
+Быстрый старт:
+
+```bash
+cp .env.python-uploader.example .env.python-uploader
+
+docker compose --env-file ./.env.python-uploader -f ./docker-compose.python-uploader.yml up --build -d
+docker compose --env-file ./.env.python-uploader -f ./docker-compose.python-uploader.yml logs -f ydsk-python-uploader
+```
+
+Для нового сервиса используются отдельные каталоги:
+
+- `./config-python`
+- `./data-python`
+
 ## CI/CD
 
-При коммите в `master` GitHub Actions собирает образ из `Dockerfile.rclone` и публикует его в GHCR.
+При коммите в `master` GitHub Actions собирает образ из `Dockerfile.python-uploader` и публикует его в GHCR.
 
 ## Источники
 

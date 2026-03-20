@@ -1,0 +1,24 @@
+services:
+  ydsk-python-uploader:
+    build:
+      context: .
+      dockerfile: ./Dockerfile.python-uploader
+    image: ydsk-python-uploader:latest
+    container_name: ydsk-python-uploader
+    environment:
+      DATA_DIR: /data
+      CONFIG_DIR: /config/python-uploader
+      YDSK_REMOTE_PATH: ${YDSK_REMOTE_PATH:?set YDSK_REMOTE_PATH in .env or environment}
+      YANDEX_CLIENT_ID: ${YANDEX_CLIENT_ID:-}
+      YANDEX_CLIENT_SECRET: ${YANDEX_CLIENT_SECRET:-}
+      YANDEX_OAUTH_SCOPE: ${YANDEX_OAUTH_SCOPE:-}
+      YANDEX_OAUTH_DEBUG: ${YANDEX_OAUTH_DEBUG:-0}
+      TELEGRAM_BOT_TOKEN: ${TELEGRAM_BOT_TOKEN:-}
+      TELEGRAM_ADMIN: ${TELEGRAM_ADMIN:-}
+      TELEGRAM_AUTH_TIMEOUT: ${TELEGRAM_AUTH_TIMEOUT:-900}
+      SCAN_INTERVAL_SECONDS: ${SCAN_INTERVAL_SECONDS:-15}
+      UPLOADER_LOG_LEVEL: ${UPLOADER_LOG_LEVEL:-INFO}
+    volumes:
+      - ./config-python:/config/python-uploader
+      - ./data-python:/data
+    restart: unless-stopped

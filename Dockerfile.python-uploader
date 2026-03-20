@@ -1,0 +1,16 @@
+FROM python:3.12-slim
+
+ENV PYTHONDONTWRITEBYTECODE=1 \
+    PYTHONUNBUFFERED=1
+
+WORKDIR /app
+
+RUN apt-get update \
+    && apt-get install -y --no-install-recommends ca-certificates \
+    && rm -rf /var/lib/apt/lists/*
+
+RUN pip install --no-cache-dir requests
+
+COPY python_uploader.py /app/python_uploader.py
+
+ENTRYPOINT ["python", "/app/python_uploader.py"]
