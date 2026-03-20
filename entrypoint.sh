@@ -5,6 +5,7 @@ REMOTE_NAME="${RCLONE_REMOTE_NAME:-yd}"
 REMOTE_PATH="${YDSK_REMOTE_PATH:-}"
 LSYNCD_DELAY_SECONDS="${LSYNCD_DELAY_SECONDS:-5}"
 LSYNCD_LOG_LEVEL="${LSYNCD_LOG_LEVEL:-normal}"
+PERIODIC_SYNC_SECONDS="${PERIODIC_SYNC_SECONDS:-300}"
 RCLONE_SYNC_FLAGS="${RCLONE_SYNC_FLAGS:-}"
 LSYNCD_CONFIG_FILE="${LSYNCD_CONFIG_FILE:-/tmp/lsyncd.conf.lua}"
 LOCK_FILE="${LOCK_FILE:-/tmp/rclone-sync.lock}"
@@ -93,6 +94,19 @@ run_watch() {
   echo "[$(date -u '+%Y-%m-%dT%H:%M:%SZ')] initial sync start" >&2
   run_sync_once "$@"
   echo "[$(date -u '+%Y-%m-%dT%H:%M:%SZ')] initial sync complete, starting lsyncd" >&2
+  if ! printf '%s' "${PERIODIC_SYNC_SECONDS}" | grep -Eq '^[0-9]+$'; then
+    echo "PERIODIC_SYNC_SECONDS must be a non-negative integer" >&2
+    exit 1
+  fi
+  if [ "${PERIODIC_SYNC_SECONDS}" -gt 0 ]; then
+    (
+      while true; do
+        sleep "${PERIODIC_SYNC_SECONDS}"
+        echo "[$(date -u '+%Y-%m-%dT%H:%M:%SZ')] periodic sync start" >&2
+        run_sync_once "$@" || true
+      done
+    ) &
+  fi
   write_lsyncd_config
   exec lsyncd "${LSYNCD_CONFIG_FILE}"
 }

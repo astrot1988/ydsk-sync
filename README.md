@@ -22,15 +22,15 @@ ghcr.io/astrot1988/ydsk-sync:latest
 - контейнер делает начальный `rclone sync`
 - затем `lsyncd` отслеживает изменения в `/data`
 - при изменениях запускается `rclone sync` в `${RCLONE_REMOTE_NAME}:${YDSK_REMOTE_PATH}`
+- дополнительно есть периодический fallback-sync каждые `PERIODIC_SYNC_SECONDS`, чтобы изменения не терялись на окружениях без надёжного inotify
 
 ## Запуск через Docker Compose
 
 ```bash
-cp /Users/aleksejlutovinov/Projects/quank-mvp/ydsk-sync/.env.example \
-  /Users/aleksejlutovinov/Projects/quank-mvp/ydsk-sync/.env
+cp .env.example .env
 
-docker compose -f /Users/aleksejlutovinov/Projects/quank-mvp/ydsk-sync/docker-compose.yml up -d ydsk-rclone
-docker compose -f /Users/aleksejlutovinov/Projects/quank-mvp/ydsk-sync/docker-compose.yml logs -f ydsk-rclone
+docker compose up -d ydsk-rclone
+docker compose logs -f ydsk-rclone
 ```
 
 ## Авторизация
@@ -60,15 +60,14 @@ docker compose -f /Users/aleksejlutovinov/Projects/quank-mvp/ydsk-sync/docker-co
 - `YDSK_REMOTE_PATH` - целевой каталог на Yandex Disk
 - `LSYNCD_DELAY_SECONDS` - debounce перед sync, по умолчанию `5`
 - `LSYNCD_LOG_LEVEL` - уровень логирования `lsyncd`
+- `PERIODIC_SYNC_SECONDS` - резервный периодический sync, по умолчанию `300`
 - `RCLONE_SYNC_FLAGS` - дополнительные флаги для `rclone sync`
 - `YANDEX_OAUTH_DEBUG` - `1`, чтобы печатать debug OAuth в логи
 
 ## Локальная сборка
 
 ```bash
-docker build -f /Users/aleksejlutovinov/Projects/quank-mvp/ydsk-sync/Dockerfile.rclone \
-  -t ydsk-rclone \
-  /Users/aleksejlutovinov/Projects/quank-mvp/ydsk-sync
+docker build -f ./Dockerfile.rclone -t ydsk-rclone .
 ```
 
 ## CI/CD
